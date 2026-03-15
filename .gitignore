@@ -1,0 +1,17 @@
+# System
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Neovim
+.netrwhist
+nvim/.netrwhist
+
+# Local
+.env
+*.local
+
+# Build
+dist/
+build/

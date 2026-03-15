@@ -1,0 +1,313 @@
+#!/bin/bash
+# trmnl — Terminal IDE manager
+set -e
+
+TRMNL_VERSION="1.0.0"
+TRMNL_DIR="$(brew --prefix)/share/trmnl"
+CONFIG_DIR="$HOME/.config"
+
+# ── Colors ──────────────────────────────────────────
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+DIM='\033[2m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+banner() {
+    echo ""
+    echo -e "${BLUE}${BOLD}  ┌─────────────────────────────┐${NC}"
+    echo -e "${BLUE}${BOLD}  │  trmnl ${DIM}v${TRMNL_VERSION}${NC}${BLUE}${BOLD}                │${NC}"
+    echo -e "${BLUE}${BOLD}  │  Terminal IDE               │${NC}"
+    echo -e "${BLUE}${BOLD}  └─────────────────────────────┘${NC}"
+    echo ""
+}
+
+# ── Setup ───────────────────────────────────────────
+cmd_setup() {
+    banner
+
+    echo -e "${BOLD}Setting up Terminal IDE...${NC}"
+    echo ""
+
+    # Backup existing configs
+    local backed_up=false
+    local backup_dir="$HOME/.config-backup-$(date +%Y%m%d-%H%M%S)"
+
+    for item in nvim zellij yazi starship.toml; do
+        local target="$CONFIG_DIR/$item"
+        if [ -e "$target" ] && [ ! -L "$target" ]; then
+            mkdir -p "$backup_dir"
+            cp -r "$target" "$backup_dir/"
+            backed_up=true
+        fi
+    done
+
+    if [ -e "$HOME/.gitconfig" ] && [ ! -L "$HOME/.gitconfig" ]; then
+        mkdir -p "$backup_dir"
+        cp "$HOME/.gitconfig" "$backup_dir/"
+        backed_up=true
+    fi
+
+    if [ "$backed_up" = true ]; then
+        echo -e "  ${YELLOW}→${NC} Existing configs backed up to $backup_dir"
+    fi
+
+    # Link configs
+    echo -e "  ${GREEN}→${NC} Linking configs..."
+    mkdir -p "$CONFIG_DIR"
+
+    link_item() {
+        local src="$1" dest="$2"
+        [ -L "$dest" ] && rm "$dest"
+        [ -e "$dest" ] && rm -rf "$dest"
+        ln -s "$src" "$dest"
+    }
+
+    link_item "$TRMNL_DIR/config/nvim"          "$CONFIG_DIR/nvim"
+    link_item "$TRMNL_DIR/config/zellij"        "$CONFIG_DIR/zellij"
+    link_item "$TRMNL_DIR/config/yazi"          "$CONFIG_DIR/yazi"
+    link_item "$TRMNL_DIR/config/starship.toml" "$CONFIG_DIR/starship.toml"
+    link_item "$TRMNL_DIR/gitconfig"            "$HOME/.gitconfig"
+
+    echo -e "    ${GREEN}✓${NC} nvim"
+    echo -e "    ${GREEN}✓${NC} zellij"
+    echo -e "    ${GREEN}✓${NC} yazi"
+    echo -e "    ${GREEN}✓${NC} starship"
+    echo -e "    ${GREEN}✓${NC} gitconfig"
+
+    # Append shell config
+    if ! grep -q "# ── trmnl ──" "$HOME/.zshrc" 2>/dev/null; then
+        echo "" >> "$HOME/.zshrc"
+        cat "$TRMNL_DIR/zshrc-block" >> "$HOME/.zshrc"
+        echo -e "    ${GREEN}✓${NC} zshrc"
+    else
+        echo -e "    ${GREEN}✓${NC} zshrc (already configured)"
+    fi
+
+    echo ""
+    echo -e "${GREEN}${BOLD}  Setup complete!${NC}"
+    echo ""
+    echo -e "  Run: ${BOLD}source ~/.zshrc${NC}"
+    echo -e "  Then: ${BOLD}zellij${NC}"
+    echo ""
+}
+
+# ── Keys ────────────────────────────────────────────
+cmd_keys() {
+    echo ""
+    echo -e "${BLUE}${BOLD}  Zellij${NC}"
+    echo -e "  ${DIM}──────────────────────────────────────${NC}"
+    echo -e "  ${BOLD}Ctrl+p${NC}  Pane mode"
+    echo -e "    ${GREEN}a${NC}  new pane left     ${GREEN}r${NC}  new pane right"
+    echo -e "    ${GREEN}d${NC}  new pane down     ${GREEN}b${NC}  new pane bottom"
+    echo -e "    ${GREEN}n${NC}  new pane (auto)   ${GREEN}s${NC}  new stacked pane"
+    echo -e "    ${GREEN}w${NC}  toggle floating   ${GREEN}f${NC}  toggle fullscreen"
+    echo -e "    ${GREEN}x${NC}  close pane        ${GREEN}e${NC}  embed/float toggle"
+    echo -e "    ${GREEN}h/j/k/l${NC}  move focus"
+    echo ""
+    echo -e "  ${BOLD}Ctrl+t${NC}  Tab mode"
+    echo -e "    ${GREEN}n${NC}  new tab           ${GREEN}x${NC}  close tab"
+    echo -e "    ${GREEN}r${NC}  rename tab        ${GREEN}1-9${NC}  go to tab"
+    echo ""
+    echo -e "  ${BOLD}Ctrl+n${NC}  Resize mode  ${DIM}(h/j/k/l to resize)${NC}"
+    echo -e "  ${BOLD}Ctrl+h${NC}  Move mode    ${DIM}(h/j/k/l to move pane)${NC}"
+    echo -e "  ${BOLD}Ctrl+s${NC}  Scroll mode"
+    echo -e "  ${BOLD}Ctrl+o${NC}  Session mode"
+    echo ""
+    echo -e "${BLUE}${BOLD}  Neovim${NC}"
+    echo -e "  ${DIM}──────────────────────────────────────${NC}"
+    echo -e "  ${GREEN}Space sf${NC}  find files       ${GREEN}Space sg${NC}  grep"
+    echo -e "  ${GREEN}Space /${NC}   search buffer    ${GREEN}Space sr${NC}  resume search"
+    echo -e "  ${GREEN}\\\\${NC}        toggle neo-tree   ${GREEN}Space gg${NC}  lazygit"
+    echo -e "  ${GREEN}Ctrl+\\\\${NC}   floating terminal"
+    echo -e "  ${GREEN}Space f${NC}   format           ${GREEN}Space u${NC}   undo tree"
+    echo -e "  ${GREEN}Space xx${NC}  diagnostics      ${GREEN}Space tH${NC}  terminal split"
+    echo -e "  ${GREEN}Shift+h/l${NC}  prev/next buffer"
+    echo -e "  ${GREEN}s${NC}         flash jump       ${GREEN}S${NC}         flash treesitter"
+    echo ""
+    echo -e "${BLUE}${BOLD}  Shell${NC}"
+    echo -e "  ${DIM}──────────────────────────────────────${NC}"
+    echo -e "  ${GREEN}ls${NC}  eza       ${GREEN}cat${NC}  bat       ${GREEN}vi${NC}  nvim"
+    echo -e "  ${GREEN}ll${NC}  ls -la    ${GREEN}lt${NC}   tree      ${GREEN}lg${NC}  lazygit"
+    echo ""
+}
+
+# ── Doctor ──────────────────────────────────────────
+cmd_doctor() {
+    banner
+    echo -e "${BOLD}Checking installation...${NC}"
+    echo ""
+
+    local all_good=true
+
+    check_tool() {
+        if command -v "$1" &>/dev/null; then
+            local ver
+            ver=$("$1" --version 2>/dev/null | head -1 || echo "installed")
+            echo -e "  ${GREEN}✓${NC} $1 ${DIM}$ver${NC}"
+        else
+            echo -e "  ${RED}✗${NC} $1 ${RED}not found${NC}"
+            all_good=false
+        fi
+    }
+
+    check_tool nvim
+    check_tool zellij
+    check_tool yazi
+    check_tool lazygit
+    check_tool fzf
+    check_tool zoxide
+    check_tool rg
+    check_tool fd
+    check_tool bat
+    check_tool eza
+    check_tool delta
+    check_tool starship
+    check_tool btop
+    check_tool tldr
+    check_tool gh
+    check_tool jq
+
+    echo ""
+
+    # Check for terminal conflicts
+    echo -e "${BOLD}Checking for terminal conflicts...${NC}"
+    echo ""
+
+    if command -v wezterm &>/dev/null; then
+        echo -e "  ${YELLOW}⚠${NC}  WezTerm detected — disable its multiplexer for best Zellij experience"
+        echo -e "     Set \`enable_tab_bar = false\` in WezTerm config"
+    fi
+
+    if command -v tmux &>/dev/null && [ -z "$TMUX" ]; then
+        echo -e "  ${YELLOW}⚠${NC}  Tmux found — use Zellij OR tmux, not both (Zellij is recommended)"
+    fi
+
+    echo ""
+
+    # Check configs
+    echo -e "${BOLD}Checking configs...${NC}"
+    echo ""
+
+    check_config() {
+        if [ -e "$1" ]; then
+            echo -e "  ${GREEN}✓${NC} $2"
+        else
+            echo -e "  ${RED}✗${NC} $2 ${RED}missing${NC} — run ${BOLD}trmnl setup${NC}"
+            all_good=false
+        fi
+    }
+
+    check_config "$CONFIG_DIR/nvim/init.lua" "nvim"
+    check_config "$CONFIG_DIR/zellij/config.kdl" "zellij"
+    check_config "$CONFIG_DIR/yazi/yazi.toml" "yazi"
+    check_config "$CONFIG_DIR/starship.toml" "starship"
+    check_config "$HOME/.gitconfig" "gitconfig"
+
+    echo ""
+
+    # Check font
+    if fc-list 2>/dev/null | grep -qi "JetBrainsMono Nerd" || [ -d "$HOME/Library/Fonts" ] && ls "$HOME/Library/Fonts" 2>/dev/null | grep -qi "JetBrainsMono"; then
+        echo -e "  ${GREEN}✓${NC} JetBrains Mono Nerd Font"
+    else
+        echo -e "  ${YELLOW}?${NC} JetBrains Mono Nerd Font ${DIM}(may still be installed)${NC}"
+    fi
+
+    echo ""
+    if [ "$all_good" = true ]; then
+        echo -e "  ${GREEN}${BOLD}Everything looks good!${NC}"
+    else
+        echo -e "  ${YELLOW}${BOLD}Some items need attention.${NC}"
+    fi
+    echo ""
+}
+
+# ── Uninstall ───────────────────────────────────────
+cmd_uninstall() {
+    echo ""
+    echo -e "${YELLOW}${BOLD}  This will remove trmnl config symlinks.${NC}"
+    echo -e "  ${DIM}(Tools stay installed, only configs are unlinked)${NC}"
+    echo ""
+    read -p "  Continue? [y/N] " -n 1 -r
+    echo ""
+
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        for item in "$CONFIG_DIR/nvim" "$CONFIG_DIR/zellij" "$CONFIG_DIR/yazi" "$CONFIG_DIR/starship.toml" "$HOME/.gitconfig"; do
+            if [ -L "$item" ]; then
+                rm "$item"
+                echo -e "  ${GREEN}✓${NC} Removed $(basename "$item")"
+            fi
+        done
+        echo ""
+        echo -e "  ${GREEN}Done.${NC} Restore backups from ~/.config-backup-* if needed."
+    else
+        echo -e "  ${DIM}Cancelled.${NC}"
+    fi
+    echo ""
+}
+
+# ── Help ────────────────────────────────────────────
+cmd_help() {
+    banner
+    echo -e "  ${BOLD}Usage:${NC} trmnl <command>"
+    echo ""
+    echo -e "  ${BOLD}Commands:${NC}"
+    echo -e "    ${GREEN}setup${NC}       Install configs and link everything"
+    echo -e "    ${GREEN}keys${NC}        Show keybind cheat sheet"
+    echo -e "    ${GREEN}doctor${NC}      Check if everything is installed"
+    echo -e "    ${GREEN}uninstall${NC}   Remove config symlinks"
+    echo -e "    ${GREEN}help${NC}        Show this message"
+    echo -e "    ${GREEN}version${NC}     Show version"
+    echo ""
+}
+
+# ── Launch ──────────────────────────────────────────
+cmd_launch() {
+    # First run — auto-setup if configs aren't linked yet
+    if [ ! -L "$CONFIG_DIR/zellij" ] && [ -d "$TRMNL_DIR/config/zellij" ]; then
+        cmd_setup
+        echo -e "  ${DIM}Starting Terminal IDE...${NC}"
+        echo ""
+    fi
+
+    # Auto-configure WezTerm if running in it
+    if [ -n "$WEZTERM_EXECUTABLE" ]; then
+        local wezterm_config="$HOME/.config/wezterm/wezterm.lua"
+        if [ -f "$wezterm_config" ]; then
+            # Check if already disabled
+            if ! grep -q "enable_tab_bar = false" "$wezterm_config" 2>/dev/null; then
+                echo -e "  ${GREEN}→${NC} Configuring WezTerm for Zellij..."
+                echo "" >> "$wezterm_config"
+                echo "-- Disabled for trmnl (Zellij multiplexer)" >> "$wezterm_config"
+                echo "config.enable_tab_bar = false" >> "$wezterm_config"
+                echo -e "     ${GREEN}✓${NC} Tab bar disabled"
+            fi
+        fi
+    fi
+
+    # Detect multiplexer: prefer Zellij, fallback to Tmux
+    if command -v zellij &>/dev/null; then
+        exec zellij
+    elif command -v tmux &>/dev/null; then
+        echo -e "  ${YELLOW}→${NC} Zellij not found, using Tmux instead"
+        exec tmux
+    else
+        echo -e "  ${RED}✗${NC} No multiplexer found (Zellij or Tmux required)"
+        echo -e "    Install with: brew install zellij"
+        exit 1
+    fi
+}
+
+# ── Main ────────────────────────────────────────────
+case "${1:-launch}" in
+    setup)      cmd_setup ;;
+    keys)       cmd_keys ;;
+    doctor)     cmd_doctor ;;
+    uninstall)  cmd_uninstall ;;
+    version)    echo "trmnl v${TRMNL_VERSION}" ;;
+    help|-h|--help) cmd_help ;;
+    launch)     cmd_launch ;;
+    *)          cmd_help ;;
+esac

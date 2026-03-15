@@ -1,0 +1,29 @@
+# ── trmnl ───────────────────────────────────────────
+export EDITOR="nvim"
+export PATH="$HOME/.local/bin:$PATH"
+export TERM="xterm-256color"
+
+# Starship prompt
+eval "$(starship init zsh)"
+
+# Zoxide (smarter cd)
+eval "$(zoxide init zsh)"
+
+# fzf keybindings & completion
+source <(fzf --zsh)
+
+# Aliases
+alias cat="bat"
+alias ls="eza --icons --group-directories-first"
+alias ll="eza --icons --group-directories-first -la"
+alias lt="eza --icons --group-directories-first --tree --level=2"
+alias lg="lazygit"
+alias vi="nvim"
+alias neo="nvim +Neotree"
+alias ya="yazi"
+
+# Auto-launch trmnl on terminal open (once per terminal session)
+if command -v trmnl &>/dev/null && [ -z "$ZELLIJ" ] && [ -z "$TRMNL_EXITED" ] && [[ $- == *i* ]]; then
+    export TRMNL_EXITED=1
+    trmnl
+fi
