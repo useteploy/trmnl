@@ -1,0 +1,9 @@
+[manager]
+prepend_keymap = [
+  # Open shell in current directory
+  { on = ["!"], run = "shell '$SHELL' --block --confirm", desc = "Open shell here" },
+  # Fuzzy find files
+  { on = ["f"], run = "plugin fzf", desc = "Fzf find" },
+  # Quick preview toggle
+  { on = ["T"], run = "plugin --sync hide-preview", desc = "Toggle preview" },
+]
