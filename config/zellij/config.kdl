@@ -231,7 +231,7 @@ plugins {
     status-bar location="zellij:status-bar";
     strider location="zellij:strider";
     tab-bar location="zellij:tab-bar";
-    welcome-screen location="zellij:session-manager" { welcome_screen true };
+    welcome-screen location="zellij:session-manager" { welcome_screen true; };
 }
 
 theme "tokyo-night"

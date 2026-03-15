@@ -6,6 +6,10 @@ font-size = 20
 font-thicken = true
 font-thicken-strength = 100
 
+# Default window size
+window-width = 200
+window-height = 50
+
 # Ultra-fine scroll control
 # Try 0.5 or 0.1 for finer increments
 scroll-multiplier = 0.5
