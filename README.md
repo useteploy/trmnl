@@ -7,7 +7,7 @@ A preconfigured terminal development environment built on Neovim, Zellij, and mo
 ### macOS & Linux
 
 ```bash
-brew tap im-tyler/trmnl
+brew tap useteploy/tap
 brew install trmnl
 trmnl setup
 source ~/.zshrc
@@ -21,7 +21,7 @@ wsl --install
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
-brew tap im-tyler/trmnl
+brew tap useteploy/tap
 brew install trmnl
 trmnl setup
 ```
