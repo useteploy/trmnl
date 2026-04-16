@@ -1,10 +1,11 @@
 class Trmnl < Formula
   desc "Terminal IDE — preconfigured terminal development environment"
-  homepage "https://github.com/yourusername/homebrew-trmnl"
-  head "https://github.com/yourusername/homebrew-trmnl.git", branch: "main"
-  version "1.0.0"
+  homepage "https://github.com/im-tyler/trmnl"
+  head "https://github.com/im-tyler/trmnl.git", branch: "main"
+  version "0.1.0"
 
   depends_on "neovim"
+  depends_on "zellij"
   depends_on "yazi"
   depends_on "lazygit"
   depends_on "fzf"
@@ -19,6 +20,7 @@ class Trmnl < Formula
   depends_on "tldr"
   depends_on "gh"
   depends_on "jq"
+  depends_on "git-credential-manager"
 
   def install
     bin.install "bin/trmnl"
@@ -27,32 +29,10 @@ class Trmnl < Formula
     (share/"trmnl").install "config/nvim"
     (share/"trmnl").install "config/zellij"
     (share/"trmnl").install "config/yazi"
+    (share/"trmnl").install "config/ghostty"
     (share/"trmnl").install "config/starship.toml"
-    (share/"trmnl").install "config/gitconfig"
+    (share/"trmnl").install "config/trmnl-gitconfig"
     (share/"trmnl").install "config/zshrc-block"
-  end
-
-  def post_install
-    # Check for multiplexer
-    zellij_installed = system("command -v zellij > /dev/null 2>&1")
-    tmux_installed = system("command -v tmux > /dev/null 2>&1")
-
-    unless zellij_installed || tmux_installed
-      opoo "No multiplexer found! Installing Zellij..."
-      system("brew install zellij")
-      unless system("command -v zellij > /dev/null 2>&1")
-        puts "\n⚠️  Zellij installation failed. Would you like to use Tmux instead? (y/n)"
-        if $stdin.gets.chomp.downcase == 'y'
-          system("brew install tmux")
-          puts "Tmux installed. Run 'trmnl setup' to configure."
-        else
-          puts "Please install Zellij manually: brew install zellij"
-        end
-      end
-    end
-
-    ohai "trmnl installed! Run 'trmnl setup' to configure everything."
-    ohai "Run 'trmnl keys' for a keybind cheat sheet."
   end
 
   def caveats
@@ -66,6 +46,10 @@ class Trmnl < Formula
       For a Nerd Font (needed for icons), install:
         brew install --cask font-jetbrains-mono-nerd-font
 
+      Recommended terminal emulator:
+        brew install --cask ghostty
+      Ghostty config available at: #{share}/trmnl/ghostty/config
+
       Useful commands:
         trmnl keys      — keybind cheat sheet
         trmnl doctor    — check installation
@@ -73,7 +57,3 @@ class Trmnl < Formula
     EOS
   end
 end
-  # ── CRITICAL ADDITIONS FROM RESEARCH ────────────────────────────
-  depends_on "git-credential-manager"  # Secure git authentication
-  # Note: cargo-flamegraph installed via: cargo install flamegraph
-  # Note: Better documentation tools available as Neovim plugins

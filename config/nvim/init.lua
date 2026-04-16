@@ -319,6 +319,8 @@ require('lazy').setup({
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
         { '<leader>b', group = '[B]uffer' },
+        { '<leader>d', group = '[D]ebug' },
+        { '<leader>m', group = '[M]arks (Harpoon)' },
         { '<leader>x', group = 'Diagnostics' },
         { 'gr', group = 'LSP Actions', mode = { 'n' } },
       },
@@ -656,8 +658,6 @@ require('lazy').setup({
         julials = {},
         dartls = {},
         mojo = {},
-
-        stylua = {}, -- Used to format Lua code
 
         -- Special Lua Config, as recommended by neovim help docs
         lua_ls = {
@@ -1006,7 +1006,7 @@ require('lazy').setup({
 
   -- IDE experience enhancements
   {
-    'snacks.nvim',
+    'folke/snacks.nvim',
     priority = 1000,
     lazy = false,
     opts = {
@@ -1014,11 +1014,6 @@ require('lazy').setup({
       scroll = { enabled = true },
       indent = { enabled = true },
     },
-  },
-
-  {
-    'echasnovski/mini.nvim',
-    version = false,
   },
 
   {
@@ -1055,12 +1050,6 @@ require('lazy').setup({
   --     { '<leader>du', '<cmd>DapUiToggle<CR>', desc = '[D]ebug [U]I' },
   --   },
   -- },
-
-  {
-    'lukas-reineke/indent-blankline.nvim',
-    main = 'ibl',
-    opts = {},
-  },
 
   { import = 'custom.plugins' },
   --

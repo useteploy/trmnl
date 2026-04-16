@@ -2,7 +2,7 @@
 # trmnl — Terminal IDE manager
 set -e
 
-TRMNL_VERSION="1.0.0"
+TRMNL_VERSION="0.1.0"
 TRMNL_DIR="$(brew --prefix)/share/trmnl"
 CONFIG_DIR="$HOME/.config"
 
@@ -44,12 +44,6 @@ cmd_setup() {
         fi
     done
 
-    if [ -e "$HOME/.gitconfig" ] && [ ! -L "$HOME/.gitconfig" ]; then
-        mkdir -p "$backup_dir"
-        cp "$HOME/.gitconfig" "$backup_dir/"
-        backed_up=true
-    fi
-
     if [ "$backed_up" = true ]; then
         echo -e "  ${YELLOW}→${NC} Existing configs backed up to $backup_dir"
     fi
@@ -65,17 +59,33 @@ cmd_setup() {
         ln -s "$src" "$dest"
     }
 
-    link_item "$TRMNL_DIR/config/nvim"          "$CONFIG_DIR/nvim"
-    link_item "$TRMNL_DIR/config/zellij"        "$CONFIG_DIR/zellij"
-    link_item "$TRMNL_DIR/config/yazi"          "$CONFIG_DIR/yazi"
-    link_item "$TRMNL_DIR/config/starship.toml" "$CONFIG_DIR/starship.toml"
-    link_item "$TRMNL_DIR/gitconfig"            "$HOME/.gitconfig"
+    link_item "$TRMNL_DIR/nvim"          "$CONFIG_DIR/nvim"
+    link_item "$TRMNL_DIR/zellij"        "$CONFIG_DIR/zellij"
+    link_item "$TRMNL_DIR/yazi"          "$CONFIG_DIR/yazi"
+    link_item "$TRMNL_DIR/starship.toml" "$CONFIG_DIR/starship.toml"
 
     echo -e "    ${GREEN}✓${NC} nvim"
     echo -e "    ${GREEN}✓${NC} zellij"
     echo -e "    ${GREEN}✓${NC} yazi"
     echo -e "    ${GREEN}✓${NC} starship"
-    echo -e "    ${GREEN}✓${NC} gitconfig"
+
+    # Git config — include trmnl settings without replacing user's gitconfig
+    local gitconfig="$HOME/.gitconfig"
+    local include_path="$TRMNL_DIR/trmnl-gitconfig"
+    if [ -f "$gitconfig" ]; then
+        if ! grep -q "path = $include_path" "$gitconfig" 2>/dev/null; then
+            echo "" >> "$gitconfig"
+            echo "[include]" >> "$gitconfig"
+            echo "    path = $include_path" >> "$gitconfig"
+            echo -e "    ${GREEN}✓${NC} gitconfig (include added)"
+        else
+            echo -e "    ${GREEN}✓${NC} gitconfig (already configured)"
+        fi
+    else
+        echo "[include]" > "$gitconfig"
+        echo "    path = $include_path" >> "$gitconfig"
+        echo -e "    ${GREEN}✓${NC} gitconfig (created with include)"
+    fi
 
     # Append shell config
     if ! grep -q "# ── trmnl ──" "$HOME/.zshrc" 2>/dev/null; then
@@ -91,6 +101,9 @@ cmd_setup() {
     echo ""
     echo -e "  Run: ${BOLD}source ~/.zshrc${NC}"
     echo -e "  Then: ${BOLD}zellij${NC}"
+    echo ""
+    echo -e "  ${DIM}Ghostty config available at: $TRMNL_DIR/ghostty/config${NC}"
+    echo -e "  ${DIM}Copy to ~/.config/ghostty/config if using Ghostty.${NC}"
     echo ""
 }
 
@@ -126,6 +139,8 @@ cmd_keys() {
     echo -e "  ${GREEN}Space xx${NC}  diagnostics      ${GREEN}Space tH${NC}  terminal split"
     echo -e "  ${GREEN}Shift+h/l${NC}  prev/next buffer"
     echo -e "  ${GREEN}s${NC}         flash jump       ${GREEN}S${NC}         flash treesitter"
+    echo -e "  ${GREEN}Space ma${NC}  harpoon add      ${GREEN}Space mm${NC}  harpoon menu"
+    echo -e "  ${GREEN}Space m1-5${NC}  harpoon jump"
     echo ""
     echo -e "${BLUE}${BOLD}  Shell${NC}"
     echo -e "  ${DIM}──────────────────────────────────────${NC}"
@@ -177,12 +192,12 @@ cmd_doctor() {
     echo ""
 
     if command -v wezterm &>/dev/null; then
-        echo -e "  ${YELLOW}⚠${NC}  WezTerm detected — disable its multiplexer for best Zellij experience"
+        echo -e "  ${YELLOW}!${NC}  WezTerm detected — disable its multiplexer for best Zellij experience"
         echo -e "     Set \`enable_tab_bar = false\` in WezTerm config"
     fi
 
     if command -v tmux &>/dev/null && [ -z "$TMUX" ]; then
-        echo -e "  ${YELLOW}⚠${NC}  Tmux found — use Zellij OR tmux, not both (Zellij is recommended)"
+        echo -e "  ${YELLOW}!${NC}  Tmux found — use Zellij OR tmux, not both (Zellij is recommended)"
     fi
 
     echo ""
@@ -204,7 +219,14 @@ cmd_doctor() {
     check_config "$CONFIG_DIR/zellij/config.kdl" "zellij"
     check_config "$CONFIG_DIR/yazi/yazi.toml" "yazi"
     check_config "$CONFIG_DIR/starship.toml" "starship"
-    check_config "$HOME/.gitconfig" "gitconfig"
+
+    # Check gitconfig include
+    if grep -q "trmnl-gitconfig" "$HOME/.gitconfig" 2>/dev/null; then
+        echo -e "  ${GREEN}✓${NC} gitconfig (trmnl include)"
+    else
+        echo -e "  ${RED}✗${NC} gitconfig ${RED}trmnl include missing${NC} — run ${BOLD}trmnl setup${NC}"
+        all_good=false
+    fi
 
     echo ""
 
@@ -234,12 +256,21 @@ cmd_uninstall() {
     echo ""
 
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        for item in "$CONFIG_DIR/nvim" "$CONFIG_DIR/zellij" "$CONFIG_DIR/yazi" "$CONFIG_DIR/starship.toml" "$HOME/.gitconfig"; do
+        for item in "$CONFIG_DIR/nvim" "$CONFIG_DIR/zellij" "$CONFIG_DIR/yazi" "$CONFIG_DIR/starship.toml"; do
             if [ -L "$item" ]; then
                 rm "$item"
                 echo -e "  ${GREEN}✓${NC} Removed $(basename "$item")"
             fi
         done
+
+        # Remove gitconfig include line
+        if [ -f "$HOME/.gitconfig" ]; then
+            local include_path="$TRMNL_DIR/trmnl-gitconfig"
+            sed -i '' "/path = ${include_path//\//\\/}/d" "$HOME/.gitconfig" 2>/dev/null
+            sed -i '' '/^\[include\]$/{ N; /^\[include\]\n$/d; }' "$HOME/.gitconfig" 2>/dev/null
+            echo -e "  ${GREEN}✓${NC} Removed gitconfig include"
+        fi
+
         echo ""
         echo -e "  ${GREEN}Done.${NC} Restore backups from ~/.config-backup-* if needed."
     else
@@ -266,25 +297,10 @@ cmd_help() {
 # ── Launch ──────────────────────────────────────────
 cmd_launch() {
     # First run — auto-setup if configs aren't linked yet
-    if [ ! -L "$CONFIG_DIR/zellij" ] && [ -d "$TRMNL_DIR/config/zellij" ]; then
+    if [ ! -L "$CONFIG_DIR/zellij" ] && [ -d "$TRMNL_DIR/zellij" ]; then
         cmd_setup
         echo -e "  ${DIM}Starting Terminal IDE...${NC}"
         echo ""
-    fi
-
-    # Auto-configure WezTerm if running in it
-    if [ -n "$WEZTERM_EXECUTABLE" ]; then
-        local wezterm_config="$HOME/.config/wezterm/wezterm.lua"
-        if [ -f "$wezterm_config" ]; then
-            # Check if already disabled
-            if ! grep -q "enable_tab_bar = false" "$wezterm_config" 2>/dev/null; then
-                echo -e "  ${GREEN}→${NC} Configuring WezTerm for Zellij..."
-                echo "" >> "$wezterm_config"
-                echo "-- Disabled for trmnl (Zellij multiplexer)" >> "$wezterm_config"
-                echo "config.enable_tab_bar = false" >> "$wezterm_config"
-                echo -e "     ${GREEN}✓${NC} Tab bar disabled"
-            fi
-        fi
     fi
 
     # Detect multiplexer: prefer Zellij, fallback to Tmux

@@ -34,8 +34,8 @@ return {
     { '<F1>', function() require('dap').step_into() end, desc = 'Debug: Step Into' },
     { '<F2>', function() require('dap').step_over() end, desc = 'Debug: Step Over' },
     { '<F3>', function() require('dap').step_out() end, desc = 'Debug: Step Out' },
-    { '<leader>b', function() require('dap').toggle_breakpoint() end, desc = 'Debug: Toggle Breakpoint' },
-    { '<leader>B', function() require('dap').set_breakpoint(vim.fn.input 'Breakpoint condition: ') end, desc = 'Debug: Set Breakpoint' },
+    { '<leader>db', function() require('dap').toggle_breakpoint() end, desc = '[D]ebug: Toggle [B]reakpoint' },
+    { '<leader>dB', function() require('dap').set_breakpoint(vim.fn.input 'Breakpoint condition: ') end, desc = '[D]ebug: Set [B]reakpoint' },
     -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
     { '<F7>', function() require('dapui').toggle() end, desc = 'Debug: See last session result.' },
   },
@@ -114,27 +114,29 @@ return {
     -- Install python specific config
     require('dap-python').setup(vim.fn.exepath 'python3' or 'python')
 
-    -- Install node specific config
-    require('dap-vscode-js').setup {
-      node_path = 'node',
-      debugger_path = (function()
-        local path = require('mason-registry').get_package('node-debug2-adapter'):get_install_path()
-        return path .. '/out/src/debugAdapter.js'
-      end)(),
-      adapters = { 'pwa-node', 'pwa-chrome' },
-    }
-
-    -- Configure adapters for Node.js
-    for _, language in ipairs { 'typescript', 'javascript' } do
-      dap.configurations[language] = {
-        {
-          type = 'pwa-node',
-          request = 'launch',
-          name = 'Launch Program',
-          program = '${workspaceFolder}/${file}',
-          cwd = '${workspaceFolder}',
-        },
+    -- Install node specific config (wrapped in pcall — adapter may not be installed yet)
+    local ok, _ = pcall(function()
+      local path = require('mason-registry').get_package('node-debug2-adapter'):get_install_path()
+      require('dap-vscode-js').setup {
+        node_path = 'node',
+        debugger_path = path .. '/out/src/debugAdapter.js',
+        adapters = { 'pwa-node', 'pwa-chrome' },
       }
+
+      for _, language in ipairs { 'typescript', 'javascript' } do
+        dap.configurations[language] = {
+          {
+            type = 'pwa-node',
+            request = 'launch',
+            name = 'Launch Program',
+            program = '${workspaceFolder}/${file}',
+            cwd = '${workspaceFolder}',
+          },
+        }
+      end
+    end)
+    if not ok then
+      vim.notify('Node.js debugger not installed yet — run :Mason to install node-debug2-adapter', vim.log.levels.WARN)
     end
   end,
 }

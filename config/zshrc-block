@@ -1,29 +1,293 @@
-# ── trmnl ───────────────────────────────────────────
-export EDITOR="nvim"
-export PATH="$HOME/.local/bin:$PATH"
-export TERM="xterm-256color"
+# ── trmnl Terminal IDE ──────────────────────────────────────────
+
+# ── Multiplexer Auto-Launch ──────────────────────────────────────
+# Auto-start Zellij when opening a new shell (skip if already inside one)
+if [ -z "$ZELLIJ" ]; then
+  if command -v zellij &>/dev/null; then
+    exec zellij
+  elif command -v tmux &>/dev/null && [ -z "$TMUX" ]; then
+    exec tmux
+  fi
+fi
+
+# ── Core Tools Initialization ────────────────────────────────────
 
 # Starship prompt
 eval "$(starship init zsh)"
 
-# Zoxide (smarter cd)
+# Zoxide (smart cd)
 eval "$(zoxide init zsh)"
 
-# fzf keybindings & completion
-source <(fzf --zsh)
+# FZF fuzzy finder
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# Aliases
-alias cat="bat"
-alias ls="eza --icons --group-directories-first"
-alias ll="eza --icons --group-directories-first -la"
-alias lt="eza --icons --group-directories-first --tree --level=2"
-alias lg="lazygit"
-alias vi="nvim"
-alias neo="nvim +Neotree"
-alias ya="yazi"
+# Atuin shell history (optional, comment out if not needed)
+# eval "$(atuin init zsh)"
 
-# Auto-launch trmnl on terminal open (once per terminal session)
-if command -v trmnl &>/dev/null && [ -z "$ZELLIJ" ] && [ -z "$TRMNL_EXITED" ] && [[ $- == *i* ]]; then
-    export TRMNL_EXITED=1
-    trmnl
+# Direnv environment management (optional)
+# eval "$(direnv hook zsh)"
+
+# ── TIER 1: Essential Tools Aliases ──────────────────────────────
+
+# Database
+alias sql='usql'
+alias db='usql'
+
+# Docker & Containers
+alias lzd='lazydocker'
+alias podman-daemon='podman system service --time=0 unix:///run/user/$(id -u)/podman/podman.sock'
+
+# Kubernetes
+alias kub='kubectl'
+alias kctx='kubectx'
+
+# GitHub
+alias ghd='gh dash'
+alias ghpr='gh pr list'
+alias ghis='gh issue list'
+
+# API Testing
+alias api='bruno'
+
+# Secrets
+alias secrets='infisical'
+alias sec='infisical'
+
+# Tool Management
+alias tv='mise --version'
+alias tm='mise task'
+
+# ── TIER 2: Profiling Tools ─────────────────────────────────────
+
+# Python profiling
+alias pyprofile='py-spy'
+alias pysample='py-spy record -o profile.svg --'
+
+# Node/TypeScript profiling
+alias jsprofile='0x'
+
+# Go profiling
+alias gocalls='go-callvis'
+
+# Rust profiling
+alias cargoflame='cargo flamegraph'
+
+# ── TIER 2: Navigation & Productivity ────────────────────────────
+
+# File navigation
+alias br='broot'
+alias brls='broot --conf {standard-config-file}:focus/'
+alias brt='broot --tree'
+
+# Task management
+alias tasks='task'
+alias task-add='task add'
+alias task-done='task done'
+alias tw='taskwarrior'
+alias tw-list='task list'
+
+# ── TIER 3: Advanced Tools ──────────────────────────────────────
+
+# API Building
+alias gql='gqt'
+
+# HTTP Benchmarking
+alias bench='wrk'
+alias load='wrk'
+
+# Infrastructure as Code
+alias tf='terraform'
+alias tfplan='terraform plan'
+alias tfapply='terraform apply'
+
+# Configuration Management
+alias ans='ansible'
+alias ansplaybook='ansible-playbook'
+
+# Kubernetes Advanced
+alias helm-search='helm search hub'
+alias helm-install='helm install'
+
+# ── TIER 4: Language Ecosystems ─────────────────────────────────
+
+# Python
+alias py='python3'
+alias ipy='ipython'
+alias poe='poetry'
+alias poe-install='poetry install'
+alias poe-add='poetry add'
+
+# Node.js / TypeScript
+alias npm-fast='pnpm'
+alias pnpm-install='pnpm install'
+alias pnpm-add='pnpm add'
+alias tsx='npx tsx'
+
+# Go
+alias gofmt='gofmt -w'
+alias golint='golangci-lint run'
+alias gobuild='go build'
+
+# Rust
+alias cargo-check='cargo check'
+alias cargo-audit='cargo audit'
+alias cargo-deny='cargo deny check'
+
+# ── TIER 5: Quality-of-Life Utilities ───────────────────────────
+
+# Better defaults (drop-in compatible replacements only)
+alias ls='eza'
+alias ll='eza -la'
+alias lt='eza --tree'
+alias cat='bat'
+alias diff='delta'
+
+# File sync
+alias rsynca='rsync -avz'
+
+# Network
+alias http='httpie'
+alias get='wget'
+
+# Search utilities
+alias search-all='ripgrep-all'
+alias ra='ripgrep-all'
+
+# System info
+alias monitor='btop'
+
+# Git shortcuts (Delta integration)
+alias gd='git diff'
+alias gds='git diff --staged'
+alias gs='git status'
+
+# Development shortcuts
+alias vi='nvim'
+alias neo='nvim +Neotree'
+alias ya='yazi'
+alias lg='lazygit'
+alias tldr-update='tldr --update'
+
+# Shell configuration
+alias zshrc-edit='nvim ~/.zshrc'
+alias zshrc-reload='source ~/.zshrc'
+
+# ── Shell Functions ──────────────────────────────────────────────
+
+# Launch tools from Neovim pane
+function new-pane-left-with-neo() {
+  zellij action new-pane -d left -c "nvim +Neotree"
+}
+
+function new-pane-right-with-yazi() {
+  zellij action new-pane -d right -c "yazi"
+}
+
+function new-pane-down-with-terminal() {
+  zellij action new-pane -d down
+}
+
+# Python virtual environment shortcuts
+function py-venv() {
+  python3 -m venv venv
+  source venv/bin/activate
+}
+
+function py-venv-activate() {
+  source venv/bin/activate
+}
+
+# Node project setup
+function node-setup() {
+  pnpm init -y
+  pnpm add -D typescript @types/node tsx
+  echo '{"compilerOptions": {"target": "ES2020", "module": "ESNext"}, "include": ["src/**/*"]}' > tsconfig.json
+  mkdir -p src
+}
+
+# Rust project setup
+function rust-setup() {
+  cargo init --name "$1"
+  cd "$1"
+  cargo add tokio
+}
+
+# Go project setup
+function go-setup() {
+  go mod init "$1"
+  mkdir -p cmd/app
+  echo 'package main\n\nimport "fmt"\n\nfunc main() {\n\tfmt.Println("Hello")\n}' > cmd/app/main.go
+}
+
+# Quick profiling
+function profile-py() {
+  py-spy record -o profile.svg -- python3 "$1"
+  echo "Profile saved to profile.svg"
+}
+
+function profile-node() {
+  0x --help | head -5
+  echo "Usage: 0x -- node script.js"
+}
+
+# Database quick access
+function sql-connect() {
+  usql "$1"
+}
+
+function sql-list-tables() {
+  usql "$1" -c "\dt"
+}
+
+# Docker quick shortcuts
+function docker-clean() {
+  docker system prune -f
+  docker volume prune -f
+}
+
+function docker-stop-all() {
+  docker stop $(docker ps -q)
+}
+
+# Kubernetes quick access
+function k8s-status() {
+  kubectl cluster-info
+}
+
+function k8s-pods() {
+  kubectl get pods -A
+}
+
+# Infrastructure as Code templates
+function tf-init() {
+  terraform init
+  terraform fmt -recursive .
+}
+
+function tf-plan-save() {
+  terraform plan -out=tfplan
+  echo "Plan saved to tfplan"
+}
+
+# GitHub integration
+function gh-pr-create-from-branch() {
+  gh pr create --web --title "$(git rev-parse --abbrev-ref HEAD)" --body "Auto-created from $(git rev-parse --short HEAD)"
+}
+
+function gh-clone() {
+  gh repo clone "$1"
+}
+
+# Shell history
+function history-search() {
+  atuin search "$1" 2>/dev/null || history | grep "$1"
+}
+
+# ── Performance Tuning ──────────────────────────────────────────
+
+# Lazy load heavy commands
+if command -v atuin &>/dev/null; then
+  eval "$(atuin init zsh)" 2>/dev/null
 fi
+
+# ── End trmnl Configuration ──────────────────────────────────────

@@ -7,15 +7,14 @@
 # Neovim
 .netrwhist
 nvim/.netrwhist
+*.nvimlog
+.nvimlog
 
 # Local
 .env
 *.local
+.claude/
 
 # Build
 dist/
 build/
-GITHUB_READY.md
-MISSING_FEATURES.md
-STRATEGIC_ROADMAP.md
-TEST_REPORT.md
