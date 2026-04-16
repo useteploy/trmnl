@@ -141,6 +141,9 @@ cmd_keys() {
     echo -e "  ${GREEN}s${NC}         flash jump       ${GREEN}S${NC}         flash treesitter"
     echo -e "  ${GREEN}Space ma${NC}  harpoon add      ${GREEN}Space mm${NC}  harpoon menu"
     echo -e "  ${GREEN}Space m1-5${NC}  harpoon jump"
+    echo -e "  ${GREEN}F5${NC}        debug start     ${GREEN}F7${NC}        debug UI"
+    echo -e "  ${GREEN}F1/F2/F3${NC}  step into/over/out"
+    echo -e "  ${GREEN}Space db${NC}  toggle breakpoint"
     echo ""
     echo -e "${BLUE}${BOLD}  Shell${NC}"
     echo -e "  ${DIM}──────────────────────────────────────${NC}"
@@ -269,6 +272,12 @@ cmd_uninstall() {
             sed -i '' "/path = ${include_path//\//\\/}/d" "$HOME/.gitconfig" 2>/dev/null
             sed -i '' '/^\[include\]$/{ N; /^\[include\]\n$/d; }' "$HOME/.gitconfig" 2>/dev/null
             echo -e "  ${GREEN}✓${NC} Removed gitconfig include"
+        fi
+
+        # Remove zshrc-block content
+        if [ -f "$HOME/.zshrc" ] && grep -q "# ── trmnl Terminal IDE ──" "$HOME/.zshrc" 2>/dev/null; then
+            sed -i '' '/# ── trmnl Terminal IDE ──/,/# ── End trmnl Configuration ──/d' "$HOME/.zshrc" 2>/dev/null
+            echo -e "  ${GREEN}✓${NC} Removed zshrc block"
         fi
 
         echo ""
