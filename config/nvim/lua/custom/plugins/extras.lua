@@ -8,12 +8,7 @@ return {
     },
   },
 
-  -- Smooth scrolling
-  {
-    'karb94/neoscroll.nvim',
-    event = 'VeryLazy',
-    opts = {},
-  },
+  -- Smooth scrolling is handled by snacks.nvim (scroll = { enabled = true })
 
   -- Highlight colors inline (e.g. #ff0000 shows red)
   {

@@ -1,13 +1,6 @@
--- Add indentation guides even on blank lines
+-- Indent guides are handled by snacks.nvim (indent = { enabled = true })
+-- This file is kept as an empty spec to avoid breaking the require in init.lua
 
 ---@module 'lazy'
 ---@type LazySpec
-return {
-  'lukas-reineke/indent-blankline.nvim',
-  -- Enable `lukas-reineke/indent-blankline.nvim`
-  -- See `:help ibl`
-  main = 'ibl',
-  ---@module 'ibl'
-  ---@type ibl.config
-  opts = {},
-}
+return {}

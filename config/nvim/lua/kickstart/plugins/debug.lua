@@ -112,7 +112,9 @@ return {
     }
 
     -- Install python specific config
-    require('dap-python').setup(vim.fn.exepath 'python3' or 'python')
+    local python_path = vim.fn.exepath 'python3'
+    if python_path == '' then python_path = 'python' end
+    require('dap-python').setup(python_path)
 
     -- Install node specific config (wrapped in pcall — adapter may not be installed yet)
     local ok, _ = pcall(function()

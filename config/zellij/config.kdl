@@ -237,7 +237,8 @@ plugins {
 theme "tokyo-night"
 default_layout "dev"
 pane_frames false
-copy_command "pbcopy"
+// macOS: pbcopy, Linux X11: xclip -selection clipboard, Linux Wayland: wl-copy
+copy_on_select true
 show_startup_tips false
 
 // Scrollback settings

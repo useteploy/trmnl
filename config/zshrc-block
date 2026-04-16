@@ -21,142 +21,23 @@ eval "$(zoxide init zsh)"
 # FZF fuzzy finder
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# Atuin shell history (optional, comment out if not needed)
-# eval "$(atuin init zsh)"
+# Atuin shell history (loads only if installed)
+if command -v atuin &>/dev/null; then
+  eval "$(atuin init zsh)" 2>/dev/null
+fi
 
-# Direnv environment management (optional)
+# Direnv environment management (loads only if installed)
 # eval "$(direnv hook zsh)"
 
-# ── TIER 1: Essential Tools Aliases ──────────────────────────────
-
-# Database
-alias sql='usql'
-alias db='usql'
-
-# Docker & Containers
-alias lzd='lazydocker'
-alias podman-daemon='podman system service --time=0 unix:///run/user/$(id -u)/podman/podman.sock'
-
-# Kubernetes
-alias kub='kubectl'
-alias kctx='kubectx'
-
-# GitHub
-alias ghd='gh dash'
-alias ghpr='gh pr list'
-alias ghis='gh issue list'
-
-# API Testing
-alias api='bruno'
-
-# Secrets
-alias secrets='infisical'
-alias sec='infisical'
-
-# Tool Management
-alias tv='mise --version'
-alias tm='mise task'
-
-# ── TIER 2: Profiling Tools ─────────────────────────────────────
-
-# Python profiling
-alias pyprofile='py-spy'
-alias pysample='py-spy record -o profile.svg --'
-
-# Node/TypeScript profiling
-alias jsprofile='0x'
-
-# Go profiling
-alias gocalls='go-callvis'
-
-# Rust profiling
-alias cargoflame='cargo flamegraph'
-
-# ── TIER 2: Navigation & Productivity ────────────────────────────
-
-# File navigation
-alias br='broot'
-alias brls='broot --conf {standard-config-file}:focus/'
-alias brt='broot --tree'
-
-# Task management
-alias tasks='task'
-alias task-add='task add'
-alias task-done='task done'
-alias tw='taskwarrior'
-alias tw-list='task list'
-
-# ── TIER 3: Advanced Tools ──────────────────────────────────────
-
-# API Building
-alias gql='gqt'
-
-# HTTP Benchmarking
-alias bench='wrk'
-alias load='wrk'
-
-# Infrastructure as Code
-alias tf='terraform'
-alias tfplan='terraform plan'
-alias tfapply='terraform apply'
-
-# Configuration Management
-alias ans='ansible'
-alias ansplaybook='ansible-playbook'
-
-# Kubernetes Advanced
-alias helm-search='helm search hub'
-alias helm-install='helm install'
-
-# ── TIER 4: Language Ecosystems ─────────────────────────────────
-
-# Python
-alias py='python3'
-alias ipy='ipython'
-alias poe='poetry'
-alias poe-install='poetry install'
-alias poe-add='poetry add'
-
-# Node.js / TypeScript
-alias npm-fast='pnpm'
-alias pnpm-install='pnpm install'
-alias pnpm-add='pnpm add'
-alias tsx='npx tsx'
-
-# Go
-alias gofmt='gofmt -w'
-alias golint='golangci-lint run'
-alias gobuild='go build'
-
-# Rust
-alias cargo-check='cargo check'
-alias cargo-audit='cargo audit'
-alias cargo-deny='cargo deny check'
-
-# ── TIER 5: Quality-of-Life Utilities ───────────────────────────
+# ── Core Aliases (always available) ──────────────────────────────
 
 # Better defaults (drop-in compatible replacements only)
 alias ls='eza'
 alias ll='eza -la'
 alias lt='eza --tree'
 alias cat='bat'
-alias diff='delta'
 
-# File sync
-alias rsynca='rsync -avz'
-
-# Network
-alias http='httpie'
-alias get='wget'
-
-# Search utilities
-alias search-all='ripgrep-all'
-alias ra='ripgrep-all'
-
-# System info
-alias monitor='btop'
-
-# Git shortcuts (Delta integration)
+# Git shortcuts (Delta integration via gitconfig)
 alias gd='git diff'
 alias gds='git diff --staged'
 alias gs='git status'
@@ -168,24 +49,85 @@ alias ya='yazi'
 alias lg='lazygit'
 alias tldr-update='tldr --update'
 
+# System info
+alias monitor='btop'
+
 # Shell configuration
 alias zshrc-edit='nvim ~/.zshrc'
 alias zshrc-reload='source ~/.zshrc'
 
+# ── Optional Tool Aliases (only if installed) ────────────────────
+
+# Database
+command -v usql &>/dev/null && alias sql='usql' && alias db='usql'
+
+# Docker & Containers
+command -v lazydocker &>/dev/null && alias lzd='lazydocker'
+
+# Kubernetes
+command -v kubectl &>/dev/null && alias kub='kubectl'
+command -v kubectx &>/dev/null && alias kctx='kubectx'
+command -v k9s &>/dev/null && alias k9='k9s'
+
+# GitHub
+alias ghd='gh dash'
+alias ghpr='gh pr list'
+alias ghis='gh issue list'
+
+# API Testing
+command -v bruno &>/dev/null && alias api='bruno'
+
+# Secrets
+command -v infisical &>/dev/null && alias secrets='infisical' && alias sec='infisical'
+
+# Tool Management
+command -v mise &>/dev/null && alias tv='mise --version' && alias tm='mise task'
+
+# Profiling (only if installed)
+command -v py-spy &>/dev/null && alias pyprofile='py-spy' && alias pysample='py-spy record -o profile.svg --'
+command -v 0x &>/dev/null && alias jsprofile='0x'
+command -v go-callvis &>/dev/null && alias gocalls='go-callvis'
+
+# File navigation
+command -v broot &>/dev/null && alias br='broot'
+
+# Task management
+command -v task &>/dev/null && alias tasks='task' && alias task-add='task add' && alias task-done='task done'
+
+# HTTP tools
+command -v http &>/dev/null && alias httpget='http'
+command -v wget &>/dev/null && alias get='wget'
+
+# Search utilities
+command -v rga &>/dev/null && alias search-all='rga'
+
+# Infrastructure (only if installed)
+command -v terraform &>/dev/null && alias tf='terraform' && alias tfplan='terraform plan' && alias tfapply='terraform apply'
+command -v ansible &>/dev/null && alias ans='ansible' && alias ansplaybook='ansible-playbook'
+command -v helm &>/dev/null && alias helm-search='helm search hub' && alias helm-install='helm install'
+
+# ── Language Ecosystem Aliases ───────────────────────────────────
+
+# Python
+alias py='python3'
+command -v ipython &>/dev/null && alias ipy='ipython'
+command -v poetry &>/dev/null && alias poe='poetry' && alias poe-install='poetry install' && alias poe-add='poetry add'
+
+# Node.js / TypeScript
+command -v pnpm &>/dev/null && alias npm-fast='pnpm'
+
+# Go
+alias gobuild='go build'
+alias golint='golangci-lint run'
+
+# Rust
+alias cargo-check='cargo check'
+alias cargo-audit='cargo audit'
+
+# File sync
+alias rsynca='rsync -avz'
+
 # ── Shell Functions ──────────────────────────────────────────────
-
-# Launch tools from Neovim pane
-function new-pane-left-with-neo() {
-  zellij action new-pane -d left -c "nvim +Neotree"
-}
-
-function new-pane-right-with-yazi() {
-  zellij action new-pane -d right -c "yazi"
-}
-
-function new-pane-down-with-terminal() {
-  zellij action new-pane -d down
-}
 
 # Python virtual environment shortcuts
 function py-venv() {
@@ -199,7 +141,7 @@ function py-venv-activate() {
 
 # Node project setup
 function node-setup() {
-  pnpm init -y
+  pnpm init
   pnpm add -D typescript @types/node tsx
   echo '{"compilerOptions": {"target": "ES2020", "module": "ESNext"}, "include": ["src/**/*"]}' > tsconfig.json
   mkdir -p src
@@ -207,16 +149,24 @@ function node-setup() {
 
 # Rust project setup
 function rust-setup() {
-  cargo init --name "$1"
+  if [ -z "$1" ]; then
+    echo "Usage: rust-setup <project-name>"
+    return 1
+  fi
+  cargo new "$1"
   cd "$1"
   cargo add tokio
 }
 
 # Go project setup
 function go-setup() {
+  if [ -z "$1" ]; then
+    echo "Usage: go-setup <module-name>"
+    return 1
+  fi
   go mod init "$1"
   mkdir -p cmd/app
-  echo 'package main\n\nimport "fmt"\n\nfunc main() {\n\tfmt.Println("Hello")\n}' > cmd/app/main.go
+  printf 'package main\n\nimport "fmt"\n\nfunc main() {\n\tfmt.Println("Hello")\n}\n' > cmd/app/main.go
 }
 
 # Quick profiling
@@ -225,18 +175,9 @@ function profile-py() {
   echo "Profile saved to profile.svg"
 }
 
-function profile-node() {
-  0x --help | head -5
-  echo "Usage: 0x -- node script.js"
-}
-
 # Database quick access
 function sql-connect() {
   usql "$1"
-}
-
-function sql-list-tables() {
-  usql "$1" -c "\dt"
 }
 
 # Docker quick shortcuts
@@ -246,27 +187,18 @@ function docker-clean() {
 }
 
 function docker-stop-all() {
-  docker stop $(docker ps -q)
+  local ids
+  ids=$(docker ps -q)
+  if [ -n "$ids" ]; then
+    docker stop $ids
+  else
+    echo "No running containers"
+  fi
 }
 
 # Kubernetes quick access
-function k8s-status() {
-  kubectl cluster-info
-}
-
 function k8s-pods() {
   kubectl get pods -A
-}
-
-# Infrastructure as Code templates
-function tf-init() {
-  terraform init
-  terraform fmt -recursive .
-}
-
-function tf-plan-save() {
-  terraform plan -out=tfplan
-  echo "Plan saved to tfplan"
 }
 
 # GitHub integration
@@ -282,12 +214,5 @@ function gh-clone() {
 function history-search() {
   atuin search "$1" 2>/dev/null || history | grep "$1"
 }
-
-# ── Performance Tuning ──────────────────────────────────────────
-
-# Lazy load heavy commands
-if command -v atuin &>/dev/null; then
-  eval "$(atuin init zsh)" 2>/dev/null
-fi
 
 # ── End trmnl Configuration ──────────────────────────────────────

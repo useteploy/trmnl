@@ -238,6 +238,14 @@ cmd_doctor() {
         all_good=false
     fi
 
+    # Check zshrc block
+    if grep -q "# ── trmnl Terminal IDE ──" "$HOME/.zshrc" 2>/dev/null; then
+        echo -e "  ${GREEN}✓${NC} zshrc (trmnl block)"
+    else
+        echo -e "  ${RED}✗${NC} zshrc ${RED}trmnl block missing${NC} — run ${BOLD}trmnl setup${NC}"
+        all_good=false
+    fi
+
     echo ""
 
     # Check font

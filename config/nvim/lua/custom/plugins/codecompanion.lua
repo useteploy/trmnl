@@ -9,19 +9,19 @@ return {
     keys = {
       { '<leader>ai', '<cmd>CodeCompanionActions<CR>', desc = '[A]I [I]nstructions', mode = { 'n', 'v' } },
       { '<leader>ac', '<cmd>CodeCompanionChat<CR>', desc = '[A]I [C]hat', mode = { 'n', 'v' } },
-      { '<leader>at', '<cmd>CodeCompanionToggle<CR>', desc = '[A]I [T]oggle Chat' },
+      { '<leader>at', '<cmd>CodeCompanionChat Toggle<CR>', desc = '[A]I [T]oggle Chat' },
     },
     opts = {
       strategies = {
-        chat = 'anthropic',
-        inline = 'anthropic',
-        agent = 'anthropic',
+        chat = { adapter = 'anthropic' },
+        inline = { adapter = 'anthropic' },
+        agent = { adapter = 'anthropic' },
       },
       adapters = {
         anthropic = {
           schema = {
             model = {
-              default = 'claude-3-5-sonnet-20241022',
+              default = 'claude-sonnet-4-20250514',
             },
           },
         },

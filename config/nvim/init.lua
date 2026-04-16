@@ -640,7 +640,7 @@ require('lazy').setup({
         sqlls = {},
 
         -- Specialized/Systems
-        terraform_lsp = {},
+        terraformls = {},
         dockerls = {},
         cmake = {},
         kotlin_language_server = {},
@@ -653,16 +653,18 @@ require('lazy').setup({
           root_markers = { 'deno.json', 'deno.jsonc' },
         },
         zls = {},
-        gleam = {},
-        nimls = {},
         perlnavigator = {},
-        groovy_language_server = {},
-        gdscript = {},
         fortls = {},
         r_language_server = {},
         julials = {},
         dartls = {},
-        mojo = {},
+
+        -- Not available via Mason — install manually if needed:
+        -- gleam = {},
+        -- nimls = {},
+        -- gdscript = {},   -- Built into Godot editor
+        -- mojo = {},
+        -- groovy_language_server = {},
 
         -- Special Lua Config, as recommended by neovim help docs
         lua_ls = {

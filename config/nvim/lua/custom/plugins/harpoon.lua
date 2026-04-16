@@ -14,8 +14,8 @@ return {
       { '<leader>m5', function() require('harpoon'):list():select(5) end, desc = 'Harpoon 5' },
     },
     config = function()
-      require('harpoon').setup {
-        global_settings = {
+      require('harpoon'):setup {
+        settings = {
           save_on_toggle = false,
           save_on_change = true,
         },

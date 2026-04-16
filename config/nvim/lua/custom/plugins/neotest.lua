@@ -23,8 +23,9 @@ return {
         adapters = {
           require 'neotest-python' {
             python = (function()
-              local python = vim.fn.exepath 'python3' or 'python'
-              return python
+              local path = vim.fn.exepath 'python3'
+              if path == '' then path = 'python' end
+              return path
             end)(),
           },
           require 'neotest-jest' {
