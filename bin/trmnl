@@ -6,6 +6,15 @@ TRMNL_VERSION="0.1.0"
 TRMNL_DIR="$(brew --prefix)/share/trmnl"
 CONFIG_DIR="$HOME/.config"
 
+# Cross-platform sed in-place (macOS uses -i '', GNU/Linux uses -i)
+sedi() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
 # ── Colors ──────────────────────────────────────────
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
@@ -284,14 +293,14 @@ cmd_uninstall() {
         # Remove gitconfig include line
         if [ -f "$HOME/.gitconfig" ]; then
             local include_path="$TRMNL_DIR/trmnl-gitconfig"
-            sed -i '' "/path = ${include_path//\//\\/}/d" "$HOME/.gitconfig" 2>/dev/null
-            sed -i '' '/^\[include\]$/{ N; /^\[include\]\n$/d; }' "$HOME/.gitconfig" 2>/dev/null
+            sedi "/path = ${include_path//\//\\/}/d" "$HOME/.gitconfig" 2>/dev/null
+            sedi '/^\[include\]$/{ N; /^\[include\]\n$/d; }' "$HOME/.gitconfig" 2>/dev/null
             echo -e "  ${GREEN}✓${NC} Removed gitconfig include"
         fi
 
         # Remove zshrc-block content
         if [ -f "$HOME/.zshrc" ] && grep -q "# ── trmnl Terminal IDE ──" "$HOME/.zshrc" 2>/dev/null; then
-            sed -i '' '/# ── trmnl Terminal IDE ──/,/# ── End trmnl Configuration ──/d' "$HOME/.zshrc" 2>/dev/null
+            sedi '/# ── trmnl Terminal IDE ──/,/# ── End trmnl Configuration ──/d' "$HOME/.zshrc" 2>/dev/null
             echo -e "  ${GREEN}✓${NC} Removed zshrc block"
         fi
 
